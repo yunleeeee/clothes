@@ -41,3 +41,18 @@ test("shirt, knit, trousers and coat produce distinct fitted silhouettes", () =>
   assert.notEqual(shirt,tee);
   assert.notEqual(pants,shorts);
 });
+
+test("original anime illustration is present as a real JPEG asset", async () => {
+  const jpeg = await readFile(new URL("../assets/mori-anime-boy.jpg", import.meta.url));
+  assert.ok(jpeg.byteLength > 4000);
+  assert.equal(jpeg[0], 0xff);
+  assert.equal(jpeg[1], 0xd8);
+  assert.equal(jpeg[2], 0xff);
+});
+test("the UI loads the illustrated model with clothing color regions", async () => {
+  const app = await readFile(new URL("../src/app.js", import.meta.url), "utf8");
+  const renderer = await readFile(new URL("../src/model.js", import.meta.url), "utf8");
+  assert.match(app, /renderModel\(/);
+  assert.match(renderer, /mori-anime-boy\.jpg/);
+  for(const region of ["top","bottom","shoes"]) assert.match(renderer,new RegExp(region + ": \\["));
+});

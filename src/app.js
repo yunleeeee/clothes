@@ -4,6 +4,7 @@ import {
 } from "./wardrobe.js";
 import { listItems, saveItem, deleteItem, readPreference, savePreference } from "./storage.js";
 import { renderAvatar } from "./avatar.js";
+import { renderModel } from "./model.js";
 
 const $ = id => document.getElementById(id);
 const state = {
@@ -154,9 +155,11 @@ function renderWardrobe() {
 function render() {
   renderFilters();
   renderWardrobe();
-  $("avatar").innerHTML = renderAvatar(state.look, state.items, state.profile);
+  renderModel($("avatar"), state.look, state.items).catch(() => {
+    $("avatar").innerHTML = renderAvatar(state.look, state.items, state.profile);
+  });
   const activeItems = Object.values(state.look).filter(id => state.items.some(item => item.id === id)).length;
-  $("current-summary").textContent = activeItems ? activeItems + " 件单品 · 点击左侧切换" : "点击左侧衣服试穿";
+  $("current-summary").textContent = activeItems ? activeItems + " 件已选 · 当前为高精度立绘换色预览" : "点击左侧衣服试穿";
 }
 function updateStyles(preferred) {
   const select = $("item-style"); select.replaceChildren();
