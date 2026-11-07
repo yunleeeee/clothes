@@ -18,6 +18,8 @@ const contentTypes={
   ".svg":"image/svg+xml",
   ".png":"image/png",
   ".webp":"image/webp",
+  ".jpg":"image/jpeg",
+  ".jpeg":"image/jpeg",
   ".ico":"image/x-icon"
 };
 const MAX_BODY=3*1024*1024;

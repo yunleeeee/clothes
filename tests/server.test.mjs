@@ -17,6 +17,9 @@ test("health endpoint and local static frontend",async()=>{
     assert.equal(hidden.status,403);
     const js=await fetch(base+"/src/app.js");
     assert.equal(js.status,200);
+    const character=await fetch(base+"/assets/mori-anime-boy.jpg");
+    assert.equal(character.status,200);
+    assert.match(character.headers.get("content-type") || "",/image\/jpeg/);
   }finally{await new Promise(resolve=>server.close(resolve));}
 });
 test("vision API is explicitly optional",async()=>{
