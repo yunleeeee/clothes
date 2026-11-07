@@ -1,0 +1,72 @@
+name: School DeepSeek API Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deepseek-connectivity:
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 5
+    steps:
+      - name: Check Python availability
+        shell: bash
+        run: python3 --version
+
+      - name: Test school DeepSeek chat API
+        shell: bash
+        env:
+          DEEPSEEK_BASE_URL: ${{ secrets.DEEPSEEK_BASE_URL }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          fields = ("DEEPSEEK_BASE_URL", "DEEPSEEK_API_KEY", "DEEPSEEK_MODEL")
+          missing = [name for name in fields if not os.environ.get(name)]
+          if missing:
+              raise SystemExit("Missing GitHub Actions configuration: " + ", ".join(missing))
+
+          base_url = os.environ["DEEPSEEK_BASE_URL"].rstrip("/")
+          # DEEPSEEK_BASE_URL must be the API base URL, not the website UI.
+          endpoint = base_url + "/chat/completions"
+          payload = json.dumps({
+              "model": os.environ["DEEPSEEK_MODEL"],
+              "messages": [
+                  {"role": "user", "content": "请只回复：连接成功"}
+              ],
+              "max_tokens": 32,
+          }).encode("utf-8")
+
+          request = urllib.request.Request(
+              endpoint,
+              data=payload,
+              headers={
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + os.environ["DEEPSEEK_API_KEY"],
+              },
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  data = json.load(response)
+          except urllib.error.HTTPError as exc:
+              raise SystemExit(f"DeepSeek HTTP error: {exc.code}")
+          except urllib.error.URLError:
+              raise SystemExit("DeepSeek network/TLS connection failed")
+          except TimeoutError:
+              raise SystemExit("DeepSeek request timed out")
+          except (json.JSONDecodeError, UnicodeError):
+              raise SystemExit("DeepSeek returned an invalid JSON response")
+
+          if not data.get("choices"):
+              raise SystemExit("DeepSeek response did not include choices")
+          print("School DeepSeek API: OK")
+          PY
