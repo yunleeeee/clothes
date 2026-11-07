@@ -17,17 +17,17 @@ export const STYLES = {
 };
 export const DEFAULT_PROFILE = {
   shoulders: 100, waist: 100, hips: 100, legs: 100,
-  skin: "#f5cdb6", hair: "#594c46", hairStyle: "long"
+  skin: "#e7b9a2", hair: "#252830", hairStyle: "short"
 };
 export const SKIN_TONES = ["#f8ddca","#f5cdb6","#dfad91","#b77d60","#91634d"];
 export const HAIR_TONES = ["#594c46","#272a31","#a36d54","#d5af7d","#9b7b96"];
 export const DEMO_ITEMS = [
-  { id:"demo-1",name:"奶油色基础 T 恤",category:"top",style:"tee",color:"#f2e5d1",demo:true },
-  { id:"demo-2",name:"鼠尾草针织衫",category:"top",style:"sweater",color:"#9eaf98",demo:true },
-  { id:"demo-3",name:"复古牛仔长裤",category:"bottom",style:"pants",color:"#7190af",demo:true },
-  { id:"demo-4",name:"樱花粉百褶裙",category:"bottom",style:"skirt",color:"#dca1aa",demo:true },
-  { id:"demo-5",name:"雾蓝色外套",category:"outer",style:"jacket",color:"#8fa9bd",demo:true },
-  { id:"demo-6",name:"米白色运动鞋",category:"shoes",style:"sneakers",color:"#eee7dc",demo:true }
+  { id:"demo-1", name:"奶油白圆领 T 恤", category:"top", style:"tee", color:"#ece9e1", demo:true },
+  { id:"demo-2", name:"墨绿色质感衬衫", category:"top", style:"shirt", color:"#526b5f", demo:true },
+  { id:"demo-3", name:"深灰直筒牛仔裤", category:"bottom", style:"pants", color:"#535e66", demo:true },
+  { id:"demo-4", name:"砂岩色休闲短裤", category:"bottom", style:"shorts", color:"#b5a18a", demo:true },
+  { id:"demo-5", name:"炭黑工装外套", category:"outer", style:"jacket", color:"#343f44", demo:true },
+  { id:"demo-6", name:"米白复古运动鞋", category:"shoes", style:"sneakers", color:"#eae7dd", demo:true }
 ];
 export function normalizeColor(value, fallback="#a9b6a1") {
   return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : fallback;

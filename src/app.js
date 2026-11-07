@@ -9,7 +9,7 @@ const $ = id => document.getElementById(id);
 const state = {
   items: [],
   look: readPreference("look", {}),
-  profile: { ...DEFAULT_PROFILE, ...readPreference("profile", {}) },
+  profile: { ...DEFAULT_PROFILE, ...readPreference("profile", {}), skin: DEFAULT_PROFILE.skin, hair: DEFAULT_PROFILE.hair, hairStyle: "short" },
   filter: "all",
   file: null
 };
@@ -37,35 +37,69 @@ function setLook(item) {
   render();
 }
 function garmentIllustration(item) {
+  // Miniature clothing drawings echo the garment contours used by the male avatar.
   const fill = normalizeColor(item.color, "#aebbaa");
-  const line = "#8a8b81";
-  const common = `fill="${fill}" stroke="${line}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
-  const inset = 'fill="none" stroke="#ffffff" stroke-opacity=".45" stroke-width="1.5"';
-  const style = normalizeStyle(item.category, item.style);
-  let figure;
-  if (item.category === "top") {
-    figure = `<path d="M46 29 59 23Q76 32 89 23L102 29 118 52 105 63 97 51 97 132 51 132 51 51 38 63 26 52Z" ${common}/><path d="M59 24Q74 46 89 24" ${inset}/><path d="M51 121H97" ${inset}/>`;
-    if (style === "shirt") figure += `<path d="M74 38V130" ${inset}/>`;
-    if (style === "sweater") figure += `<path d="M48 37H100M51 116H97" ${inset}/>`;
-  } else if (item.category === "bottom") {
-    figure = style === "skirt" ?
-      `<path d="M51 25H98L116 129Q76 140 33 129Z" ${common}/><path d="M51 36H98M62 49L50 128M88 49L101 128" ${inset}/>` :
-      `<path d="M50 24H99L106 132H79L75 71 69 132H43Z" ${common}/><path d="M51 35H99M75 39V66" ${inset}/>`;
-  } else if (item.category === "dress") {
-    figure = `<path d="M57 25Q75 38 91 25L105 32 120 57 107 67 99 51 95 79 119 137Q75 146 31 137L54 79 51 51 39 67 26 57 42 32Z" ${common}/><path d="M57 27Q74 45 91 27M54 80H95" ${inset}/>`;
-  } else if (item.category === "outer") {
-    figure = `<path d="M55 22L73 34 92 22 107 29 117 65 105 70 95 54 101 140 76 140 70 54 66 140 43 140 50 54 36 70 24 65 37 29Z" ${common}/><path d="M73 34 63 54 70 67 76 140" ${inset}/>`;
-  } else if (item.category === "shoes") {
-    figure = `<path d="M28 81Q39 75 45 54L58 62 68 81Q73 90 70 100L18 100Q11 89 28 81Z" ${common}/><path d="M84 81Q95 75 101 54L114 62 124 81Q130 90 127 100L75 100Q68 89 84 81Z" ${common}/><path d="M18 94H70M75 94H127" ${inset}/>`;
-  } else {
-    figure = `<path d="M74 45Q39 18 29 52Q23 83 74 76Q125 83 119 52Q109 18 74 45Z" ${common}/><circle cx="74" cy="60" r="11" ${common}/>`;
+  const dark = "#" + [1,3,5].map(i =>
+    Math.max(0, parseInt(fill.slice(i,i+2),16)-45).toString(16).padStart(2,"0")
+  ).join("");
+  const light = "#" + [1,3,5].map(i =>
+    Math.min(255, parseInt(fill.slice(i,i+2),16)+32).toString(16).padStart(2,"0")
+  ).join("");
+  const P = (d, color=fill, extra="") =>
+    '<path d="' + d + '" fill="' + color + '" stroke="' + dark + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" ' + extra + '/>';
+  const seam = (d, opacity=".38") => '<path d="' + d + '" fill="none" stroke="' + light + '" stroke-width="1.4" stroke-linecap="round" opacity="' + opacity + '"/>';
+  const style = normalizeStyle(item.category,item.style);
+  const art = [];
+  art.push('<svg viewBox="0 0 180 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">');
+  art.push('<defs><linearGradient id="miniShade" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".23"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient></defs>');
+  if(item.category==="top") {
+    const longSleeve=style!=="tee";
+    art.push(P(longSleeve ?
+      "M48 33L71 27Q90 46 109 27L132 33Q145 44 153 64L142 132L120 127L117 71L121 160Q90 166 59 160L63 71L60 127L38 132L27 64Q35 44 48 33Z" :
+      "M48 34L71 27Q90 44 109 27L132 34Q150 43 156 71L134 84L122 67L122 161Q90 168 58 161L58 67L46 84L24 71Q31 43 48 34Z"));
+    art.push(seam("M71 29Q90 52 109 29"));
+    if(style==="shirt"){
+      art.push(seam("M90 47V161"));
+      art.push(P("M71 28L90 49L82 61L64 36Z",light));
+      art.push(P("M109 28L90 49L99 61L116 36Z",light));
+      for(let y=68;y<153;y+=18)art.push('<circle cx="91" cy="'+y+'" r="1.5" fill="'+dark+'"/>');
+    }else if(style==="sweater"){
+      art.push(seam("M59 149Q90 157 121 149M38 120L60 124M121 124L142 120"));
+    }else art.push(seam("M58 156Q90 164 122 156"));
+    art.push(seam("M63 78Q67 97 66 124M117 78Q113 97 114 124",".19"));
+  }else if(item.category==="bottom"){
+    if(style==="skirt"){
+      art.push(P("M55 24L125 24L149 164Q90 181 31 164Z"));
+      art.push(seam("M55 38H125M68 52L54 163M113 52L128 163"));
+    }else if(style==="shorts"){
+      art.push(P("M52 24L128 24L138 113Q116 122 100 112L90 76L80 112Q61 122 42 113Z"));
+      art.push(seam("M90 42V72M50 102L80 103M100 103L132 102"));
+    }else{
+      art.push(P("M52 24L128 24L141 160L98 163L91 76L84 163L41 160Z"));
+      art.push(seam("M52 37H128M91 42V76M49 150L79 151M104 151L133 150"));
+      art.push(seam("M59 64L66 125M123 63L115 124",".18"));
+    }
+  }else if(item.category==="outer"){
+    const hem=style==="coat"?172:155;
+    art.push(P("M47 32L74 24L87 49L78 "+hem+"L47 "+hem+"L58 75L49 132L25 130L28 60Z"));
+    art.push(P("M133 32L106 24L93 49L102 "+hem+"L133 "+hem+"L122 75L131 132L155 130L152 60Z"));
+    art.push(seam("M73 27L66 53L81 66M107 27L114 53L99 66"));
+    art.push(seam("M48 117L69 117M111 117L132 117"));
+  }else if(item.category==="shoes"){
+    art.push(P("M37 93L55 65L71 78L81 106Q99 112 99 132L27 136Q18 119 37 93Z"));
+    art.push(P("M109 93L127 65L142 80L153 106Q171 113 171 133L100 137Q92 119 109 93Z"));
+    art.push(seam("M27 128L99 125M100 129L171 126M43 99L65 103M116 99L139 103"));
+  }else{
+    art.push(P("M90 73Q37 25 25 69Q18 115 90 93Q163 115 155 69Q143 25 90 73Z"));
+    art.push('<circle cx="90" cy="83" r="12" fill="'+dark+'"/>');
   }
-  return `<svg viewBox="0 0 148 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${figure}</svg>`;
+  art.push('</svg>');
+  return art.join("");
 }
 function renderFilters() {
   const target = $("filters");
   target.replaceChildren();
-  const visible = CATEGORIES.filter(cat => cat.id !== "accessory");
+  const visible = CATEGORIES.filter(cat => cat.id === "all" || state.items.some(item => item.category === cat.id));
   for (const cat of visible) {
     const button = node("button", "filter" + (state.filter === cat.id ? " active" : ""), cat.label);
     button.type = "button";
@@ -257,6 +291,16 @@ async function init() {
   bindEvents();
   try {
     state.items = (await listItems()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    // Update built-in examples for male clothing without touching user-added photos.
+    const latestDemos = new Map(DEMO_ITEMS.map(item => [item.id, item]));
+    for (let i = 0; i < state.items.length; i++) {
+      const previous = state.items[i];
+      const latest = previous.demo === true && latestDemos.get(previous.id);
+      if (latest && JSON.stringify(previous) !== JSON.stringify(latest)) {
+        state.items[i] = latest;
+        await saveItem(latest);
+      }
+    }
     if (!state.items.length && !readPreference("seeded", false)) {
       for (const item of DEMO_ITEMS) await saveItem(item);
       state.items = [...DEMO_ITEMS];

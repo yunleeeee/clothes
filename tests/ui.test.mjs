@@ -20,3 +20,24 @@ test("avatar renders multiple garment styles", () => {
   assert.match(dressed, /<path/);
   assert.notEqual(noGarment, dressed);
 });
+
+test("male character and worn garment layers use explicit anatomy anchors", () => {
+  const dressed=renderAvatar(
+    {top:"demo-2",bottom:"demo-3",outer:"demo-5",shoes:"demo-6"},
+    DEMO_ITEMS
+  );
+  assert.match(dressed,/data-avatar-gender="male"/);
+  for (const layer of ["body","bottom","shoes","top","outer","face","hair"]) {
+    assert.match(dressed,new RegExp('data-layer="' + layer + '"'));
+  }
+  assert.ok(dressed.indexOf('data-layer="bottom"') < dressed.indexOf('data-layer="top"'));
+  assert.ok(dressed.indexOf('data-layer="face"') > dressed.indexOf('data-layer="outer"'));
+});
+test("shirt, knit, trousers and coat produce distinct fitted silhouettes", () => {
+  const shirt=renderAvatar({top:"demo-2"},DEMO_ITEMS);
+  const tee=renderAvatar({top:"demo-1"},DEMO_ITEMS);
+  const pants=renderAvatar({bottom:"demo-3"},DEMO_ITEMS);
+  const shorts=renderAvatar({bottom:"demo-4"},DEMO_ITEMS);
+  assert.notEqual(shirt,tee);
+  assert.notEqual(pants,shorts);
+});
