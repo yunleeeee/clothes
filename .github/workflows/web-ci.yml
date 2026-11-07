@@ -1,0 +1,32 @@
+name: MORI Web Tests
+
+on:
+  push:
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "src/**"
+      - "server/**"
+      - "tests/**"
+      - "package.json"
+      - ".github/workflows/web-ci.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    # Use an isolated GitHub-hosted runner, never the personal Mac for untrusted PRs.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check syntax
+        run: npm run check
+      - name: Run tests
+        run: npm test

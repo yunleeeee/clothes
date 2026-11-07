@@ -1,0 +1,9 @@
+# Keys and local configuration — never commit them
+.env
+.env.*
+!.env.example
+.DS_Store
+node_modules/
+coverage/
+*.log
+dist/
