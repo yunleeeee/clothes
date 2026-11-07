@@ -1,78 +1,64 @@
-# MORI · 衣间（MVP）
+# MORI · 衣间
 
-一款偏日系手账风格的私人穿搭网站：二次元 SVG 小人、可以调整的身材比例、图片衣橱、手动换装和搭配收藏。**原创实现**，参考了若干公开项目的产品思路，没有复制其代码或素材。
+一个极简的个人虚拟衣柜网站。左侧是衣柜，中央是二次元人物，右上角可以上传自己的衣服。界面只保留这三项核心交互。
 
-## 当前可以做什么
+## 本地运行
 
-- 直接点击虚拟衣橱中的衣服，让小人穿上。上下装、裙装、外套、鞋子和配饰分别分层绘制。
-- 调节肩宽、腰围、臀围和腿长的相对比例，改变发色、肤色和发型。
-- 上传衣物单品照片或上身照，选择分类和服装版型，加入本地私人衣橱。
-- 本地读取衣服图片的大致颜色，可以手动校正；小人以相应颜色的**风格化 SVG 服饰**展示。
-- 随机搭配、收藏搭配、删除衣物和搜索筛选。
-- 可选：通过本地后端调用学校 DeepSeek **支持视觉输入的模型**，识别单件衣物名称、分类、款式和颜色。
+需要 Node.js 22 或以上版本。
 
-## 如何在 Mac 上启动
-
-要求 Node.js 22 或更高版本，不需要安装额外的 npm 依赖。
-
-~~~bash
+```bash
 git clone https://github.com/yunleeeee/clothes.git
 cd clothes
 npm start
-~~~
+```
 
-浏览器打开 **http://127.0.0.1:3000**。停止服务按 Control+C。
+然后打开 [http://127.0.0.1:3000](http://127.0.0.1:3000)。
 
-开发时可使用 \`npm run dev\`；运行单元测试用 \`npm test\`。首页自带 6 件可以删除的示例衣服。
+如果已经克隆过仓库，先 `git pull`，再 `npm start`。运行单元测试：`npm test`。
 
-> **安全提示：** 目前仅绑定 127.0.0.1，供本机个人使用；没有登录、用户账户或云端照片存储，不适合直接暴露在公网。
+## 三项功能
 
-## 可选：连接学校 DeepSeek 识别服装图片
+1. **人物预览**：中央是一位原创绘制的 2D 二次元风格人物，衣服采用 SVG 服装图层绘制。
+2. **衣柜**：选择衣物后，人物同步更换对应服装；有简单的分类与删除。
+3. **添加衣服**：支持 JPG、PNG、WebP，最大 8 MB。用户指定分类、款式，自动估计衣服颜色，也可以手动调整。照片仅保存在当前浏览器 IndexedDB。
 
-1. 确认学校提供的是 **OpenAI Chat Completions 兼容 API**，且模型明确支持图片输入。普通的文本推理模型可能无法识别图片。
-2. 在项目根目录将 \`.env.example\` 复制为 \`.env.local\`，填入实际 \`DEEPSEEK_BASE_URL\`、\`DEEPSEEK_API_KEY\`、\`DEEPSEEK_MODEL\`。
-3. 重新运行 \`npm start\`，上传衣服后点击「AI 识别」按钮。
+初次打开会包含 6 件可删除的演示衣物。默认穿搭会自动选取衣柜里的部分衣服。
 
-\`DEEPSEEK_BASE_URL\` 是 API 基础地址（例如以 \`/v1\` 结尾），不是聊天网站首页。后端会调用 \`/chat/completions\`。学校接口若使用不同协议，需要适配 \`server/index.mjs\`。
+## 照片与试衣能力的边界
 
-**注意：** GitHub Actions Secrets 仅在工作流运行时可用，不会自动注入你 Mac 手动运行的 \`npm start\` 进程。因此本地网页使用 AI 识别时需要独立配置 \`.env.local\`；此文件已被 \`.gitignore\` 排除。不要将 API Key 上传至前端或仓库。
+当前为**插画式换装 MVP**：上传照片用于衣柜展示，小人身上根据分类、版型和主色生成相应形状。**不是**真实服饰照片贴图、精准人体测量或照片级虚拟试衣。
 
-## 图片隐私和功能边界
+原有代码中人物的身材比例参数仍由内部渲染器支持，但为保持极简，界面不再展示身材滑块、发色编辑区、穿搭收藏和随机搭配。
 
-- 衣服照片默认经过浏览器压缩后保存在**当前浏览器的 IndexedDB**，不会自动上传 GitHub 或你的服务器。清除浏览器站点数据会删除这些衣橱图片。
-- 点击「AI 识别」才会把**选中的图片**从浏览器发送到本机后端，再由后端发给学校模型。上身照可能包含人脸，上传前会再次确认。
-- 目前不是虚拟试衣 AI：对于单品照片或上身照，系统保存原照片作为衣橱卡片，并以分类、颜色和版型绘制小人的相应服装，而不是把真实照片无损抠图后贴到小人上。
-- 如果学校模型不支持视觉输入，仍可完全不使用 AI，手动录入衣服。
-- 浏览器本地存储没有云备份，也没有多设备同步。
+## 可选学校 DeepSeek API
 
-## 项目结构
+项目保留可选的 `/api/analyze`。如果学校的 API 使用 OpenAI 兼容 Chat Completions 协议，并且使用的模型**支持图片输入**，可以通过「添加衣服」弹窗中的「AI 识别」填入推荐名称、分类与颜色。若学校的 DeepSeek 仅支持文字，这个功能不会正常运行，但手动添加照常可用。
 
-~~~text
-index.html                 首页和上传表单
-styles.css                 页面主题和响应式布局
-src/app.js                 交互、衣橱管理、上传和照片压缩
-src/avatar.js              原创 SVG 二次元人物和服装图层
-src/storage.js             IndexedDB 和偏好设置
-src/wardrobe.js            服装分类、搭配逻辑、数据校验
-server/index.mjs           仅本地开放的 HTTP / AI API
-tests/                     Node 原生测试
-.github/workflows/         GitHub CI + 之前的 Runner / DeepSeek 连通性测试
-~~~
+```bash
+cp .env.example .env.local
+# 将学校的 API URL、Key 和实际视觉模型 ID 填入 .env.local
+npm start
+```
 
-## 后续规划
+**不要**将 `.env.local`、API Key 或用户照片提交至 GitHub。已配置的 GitHub Actions Secrets 只适用于 Actions 任务，不会自动传给你本地手动执行的 `npm start`。对上身照使用「AI 识别」前，会要求确认发送图片。应用默认只绑定本机 `127.0.0.1`。
 
-1. 衣物背景去除、服装轮廓检测、把提取的纹理映射到对应 SVG 图层。
-2. 自己的体型参考图或测量数据驱动更精准的比例；需用户确认，不推断人体敏感数据。
-3. 更完整的版型、鞋帽、层叠和四季服装分类。
-4. 更高级别的视觉试衣可接入专门的虚拟试衣/图像生成模型；普通文本 DeepSeek 不能完成真实换装图生成。
-5. 在隔离环境中接入 GitHub Actions + macOS Runner，执行浏览器测试并把结果交给学校 DeepSeek 审查。
+## 设计方向
 
-## 开源项目参考
+界面借鉴极简时装品牌的设计原则：限定配色、足够的留白、将衣物视为商品摄影而非图标堆砌。所有 UI、人物 SVG 和默认衣物插画均为原创代码，不直接复制第三方素材。
 
-以下仅借鉴产品概念与公开的架构说明：
+灵感资料：
+- [Toteme / minimalist brand examples (Shopify)](https://www.shopify.com/blog/minimalist-website-examples)
+- [Norse Projects editorial design](https://opendesign.cc/en/sites/norse-projects)
 
-- [LifeCloset](https://github.com/nutan654/Closet) — SVG 虚拟换装、服装图层、图片处理管线。
-- [Silhouette Style Studio](https://github.com/Jody2905/silhouette-style-studio) — 人物比例调整与可换装的 SVG 形象。
-- [Libre Closet](https://github.com/Lazztech/Libre-Closet) — 数字衣橱、服装上传与搭配管理。
+## 项目文件
 
-没有复制它们的代码、插画或依赖授权不明的素材。
+- `index.html`：双栏界面与添加衣物弹窗
+- `styles.css`：简洁的编辑式视觉风格与响应式布局
+- `src/app.js`：衣柜与上传交互
+- `src/avatar.js`：原创人物与服装 SVG
+- `src/wardrobe.js`：分类和数据处理
+- `src/storage.js`：IndexedDB / 本地设置
+- `server/index.mjs`：本地 HTTP 服务及可选 DeepSeek API
+- `tests/`：自动化测试
+
+GitHub Actions 保留了之前配置的 macOS Runner 与 DeepSeek 连通性检查工作流，同时运行网页单元测试。

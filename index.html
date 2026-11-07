@@ -3,75 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f8f6f1">
-  <meta name="description" content="衣间 · 属于你的二次元虚拟衣橱。上传真实服饰，打造自己的穿搭小人。">
-  <title>衣间 MORI — 我的虚拟衣橱</title>
+  <meta name="theme-color" content="#f7f6f3">
+  <meta name="description" content="MORI 衣间，一间私人的极简虚拟衣橱。">
+  <title>MORI · 衣间</title>
   <link rel="stylesheet" href="/styles.css">
   <script type="module" src="/src/app.js"></script>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="site-header">
-      <div class="brand"><span class="brand-mark">m.</span><div><strong>MORI <span class="brand-dot">·</span> 衣间</strong><small>MY LITTLE WARDROBE</small></div></div>
-      <div class="header-center"><span class="status-dot"></span> 每天都是穿搭新的一天 <span class="star">✳</span></div>
-      <button id="header-add" class="btn btn-dark" type="button"><span>＋</span> 添加衣服</button>
+  <div class="site">
+    <header class="header">
+      <div class="identity"><span class="logo">mori<span class="logo-period">.</span></span><span class="identity-line"></span><span class="identity-sub">衣间</span></div>
+      <span class="header-caption">a wardrobe, just for you</span>
+      <button id="add-garment" class="add-button" type="button"><span aria-hidden="true">＋</span> 添加衣服</button>
     </header>
-    <main class="workspace">
-      <aside class="panel wardrobe-panel">
-        <div class="eyebrow">01 / THE WARDROBE</div>
-        <div class="panel-title-row"><h1>我的衣橱</h1><span id="item-count" class="count-pill">0 件</span></div>
-        <p class="panel-subtitle">把喜欢的衣服一件件收进来 ♡</p>
-        <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索我的衣服..." aria-label="搜索衣服"></label>
-        <div id="filters" class="filters" aria-label="按类别筛选"></div>
-        <div id="wardrobe-grid" class="wardrobe-grid" aria-live="polite"></div>
-        <div id="wardrobe-empty" class="empty-message" hidden>这里还没有衣服。上传一张照片，开始你的衣橱吧。</div>
-        <div class="sidebar-bottom"><div class="tiny-icon">✦</div><div><strong>一点点小灵感</strong><p>点选单品就能换上小人身上的衣服！</p></div></div>
+
+    <div class="layout">
+      <aside class="closet" aria-label="我的衣柜">
+        <div class="closet-heading">
+          <div><span class="eyebrow">YOUR COLLECTION</span><h1>我的衣柜 <span id="item-count" class="closet-count">00</span></h1></div>
+        </div>
+        <nav id="filters" class="filters" aria-label="衣物分类"></nav>
+        <div id="wardrobe-grid" class="garment-grid" aria-live="polite"></div>
+        <div id="wardrobe-empty" class="wardrobe-empty" hidden>还没有衣服。<br>点击右上角「添加衣服」开始。</div>
+        <div class="closet-bottom">SELECT A PIECE TO TRY ON <span>↗</span></div>
       </aside>
-      <section class="studio">
-        <div class="studio-top"><span class="eyebrow">YOUR PERSONAL DRESSING ROOM</span><span class="studio-date">✿ <span id="today"></span></span></div>
-        <div class="studio-heading"><h2>今天，<em>穿什么好？</em></h2><p>给属于你的二次元小人搭配一身好心情。</p></div>
-        <div class="stage" aria-label="虚拟换装预览">
-          <div class="stage-glow"></div>
-          <div class="stage-flower top-flower">✳</div><div class="stage-flower bottom-flower">✿</div>
-          <div class="stage-sticker sticker-top">TODAY'S<br>LOOK <span>♥</span></div>
-          <div class="stage-sticker sticker-bottom">my little<br>avatar ↗</div>
-          <div id="avatar" class="avatar-host" role="img" aria-label="当前小人的穿搭"></div>
-          <div class="stage-floor"></div>
+
+      <main class="showcase">
+        <div class="showcase-top"><span>THE DRESSING ROOM</span><span class="showcase-index">01 — 01</span></div>
+        <div class="figure-wrap">
+          <div class="figure-backdrop"></div>
+          <div id="avatar" class="avatar" role="img" aria-label="当前穿搭的二次元人物"></div>
+          <div class="figure-caption">MORI <em>atelier</em></div>
         </div>
-        <div class="stage-footnote"><span>✦ 这是风格化试穿示意，并非真实照片级试衣效果</span><span id="current-summary">日常穿搭</span></div>
-        <div class="stage-actions"><button id="shuffle" class="btn btn-outline" type="button">⤨ 随机搭一套</button><button id="save-look" class="btn btn-primary" type="button">♡ 保存这套搭配</button><button id="reset-look" class="btn btn-quiet" type="button">↺ 清空</button></div>
-        <section class="saved-section"><div class="saved-heading"><h3>穿搭手账 <span>✍</span></h3><span id="look-count" class="muted">0 套收藏</span></div><div id="saved-looks" class="saved-looks"></div></section>
-      </section>
-      <aside class="panel editor-panel">
-        <div class="eyebrow">02 / MY LITTLE SELF</div>
-        <div class="panel-title-row"><h2>我的小人 <span class="title-spark">✳</span></h2></div>
-        <p class="panel-subtitle">用几个参数，让她/他更像你一点。</p>
-        <div class="editor-card"><div class="editor-card-title"><span>✦</span> 身材比例 <small>随时调整</small></div>
-          <label class="slider-field"><span>肩膀宽度 <b id="shoulders-value"></b></span><input id="shoulders" type="range" min="75" max="130" value="100"></label>
-          <label class="slider-field"><span>腰部宽度 <b id="waist-value"></b></span><input id="waist" type="range" min="75" max="135" value="100"></label>
-          <label class="slider-field"><span>臀部宽度 <b id="hips-value"></b></span><input id="hips" type="range" min="80" max="125" value="100"></label>
-          <label class="slider-field"><span>腿长比例 <b id="legs-value"></b></span><input id="legs" type="range" min="85" max="115" value="100"></label>
-        </div>
-        <div class="editor-card"><div class="editor-card-title"><span>✿</span> 小人外观</div>
-          <div class="appearance-row"><span>肤色</span><div id="skin-options" class="swatches" aria-label="选择肤色"></div></div>
-          <div class="appearance-row"><span>发色</span><div id="hair-options" class="swatches" aria-label="选择发色"></div></div>
-          <label class="select-row">发型 <select id="hair-style"><option value="long">柔顺长发</option><option value="bob">元气短发</option></select></label>
-        </div>
-        <div class="editor-card outfit-card"><div class="editor-card-title"><span>♡</span> 当前穿搭</div><div id="outfit-slots" class="outfit-slots"></div></div>
-        <div class="privacy-note"><span>🔒</span><div><strong>你的照片，只属于你</strong><p>衣物照片默认只保存在当前浏览器。仅点击「AI 识别」才发送所选图片到你配置的 API。</p></div></div>
-      </aside>
-    </main>
-    <footer class="footer">MADE FOR YOUR EVERYDAY LITTLE MOMENTS <span>✿</span> MORI CLOSET — V0.1</footer>
+        <div class="showcase-bottom"><span>今日穿搭</span><span id="current-summary">点击左侧衣服试穿</span></div>
+      </main>
+    </div>
   </div>
+
   <dialog id="upload-dialog" class="upload-dialog">
     <form id="upload-form" class="upload-form">
-      <div class="modal-heading"><div><div class="eyebrow">A NEW LITTLE FIND</div><h2>收下一件新衣服 <span>♡</span></h2></div><button id="close-dialog" type="button" class="close-button" aria-label="关闭">×</button></div>
-      <label id="dropzone" class="dropzone"><input id="photo" name="photo" type="file" accept="image/png,image/jpeg,image/webp" required><span id="upload-preview" class="upload-preview"><span class="upload-emoji">▧</span><strong>点击选择衣服照片</strong><small>单品照或上身照均可 · JPG / PNG / WebP · 最大 8 MB</small></span></label>
-      <div class="field-row"><label>衣服名称<input name="name" id="item-name" type="text" placeholder="例如：奶油色针织开衫" maxlength="45" required></label><label>类别<select name="category" id="item-category"><option value="top">上衣</option><option value="bottom">下装</option><option value="dress">连衣裙</option><option value="outer">外套</option><option value="shoes">鞋子</option><option value="accessory">配饰</option></select></label></div>
-      <div class="field-row"><label>展示版型<select name="style" id="item-style"></select></label><label>小人衣服颜色<div class="color-field"><input id="item-color" name="color" type="color" value="#9cb7ad"><span>可手动微调</span></div></label></div>
-      <div class="photo-type"><span>照片类型</span><label><input type="radio" name="photoType" value="item" checked> 衣服单品</label><label><input type="radio" name="photoType" value="worn"> 穿在身上的照片</label></div>
-      <div id="analysis-message" class="analysis-message" role="status">上传后可以选择 AI 识别；未经点击不会发送照片。</div>
-      <div class="modal-actions"><button id="analyze-button" class="btn btn-outline" type="button" disabled>✧ AI 识别</button><button class="btn btn-primary" type="submit">＋ 加入我的衣橱</button></div>
+      <div class="modal-head"><div><span class="eyebrow">NEW ITEM</span><h2>添加到衣柜</h2></div><button id="close-dialog" class="close-dialog" type="button" aria-label="关闭弹窗">×</button></div>
+      <label class="image-pick">
+        <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" required>
+        <span id="upload-preview" class="upload-preview"><span class="upload-sign">＋</span><strong>选择一张衣服照片</strong><small>JPG、PNG、WebP · 最大 8 MB</small></span>
+      </label>
+      <div class="input-grid">
+        <label class="field field-wide">衣服名称<input id="item-name" type="text" maxlength="45" placeholder="例如：白色衬衫" required></label>
+        <label class="field">分类<select id="item-category">
+          <option value="top">上衣</option><option value="bottom">下装</option><option value="dress">裙装</option>
+          <option value="outer">外套</option><option value="shoes">鞋子</option><option value="accessory">配饰</option>
+        </select></label>
+        <label class="field">款式<select id="item-style" aria-label="衣服版型"></select></label>
+        <label class="field">颜色<input id="item-color" type="color" value="#d4c6b9" aria-label="衣服在小人身上的颜色"></label>
+      </div>
+      <div class="photo-source"><label><input type="radio" name="photoType" value="item" checked> 单品照</label><label><input type="radio" name="photoType" value="worn"> 上身照</label></div>
+      <p id="analysis-message" class="analysis-message" role="status">照片保存在本浏览器。小人采用简化插画效果。</p>
+      <div class="modal-actions">
+        <button id="analyze-button" type="button" class="ai-button" disabled>AI 识别 <span>↗</span></button>
+        <button type="submit" class="submit-button">加入衣柜 <span>→</span></button>
+      </div>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
