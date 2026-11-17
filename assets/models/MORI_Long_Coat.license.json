@@ -1,0 +1,29 @@
+{
+  "file": "MORI_Long_Coat.glb",
+  "created": "2026-11-17",
+  "sha256": "7d9d47c4ce364eb49881780db8e72127efe6e6455d70a8b3010cdda383ddfc68",
+  "generator": "scripts/derive-coat.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent knee-length open-front coat derived from the licensed shirt, body topology and rig proportions. Exact polygon clipping creates a continuous smooth placket with interpolated normals and blended skin weights instead of a jagged triangle-selection boundary. The flared lower shell overlaps and encloses the upper hem to remove the hip seam; blended hips, spine and upper-leg weights preserve posing and body morphs.",
+    "vertices": 5033,
+    "triangles": 3980,
+    "bodyTriangles": 1160,
+    "sleeveTriangles": 1092,
+    "skirtTriangles": 1728,
+    "features": ["open-front", "smooth-placket", "long-sleeves", "flared-hem"],
+    "skinnedJoints": 83,
+    "category": "outer",
+    "style": "coat",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item. The inner top remains visible through the front opening and uses a conditional shoulder-compression morph to stay inside the coat; independent trousers remain visible below the hem."
+  }
+}

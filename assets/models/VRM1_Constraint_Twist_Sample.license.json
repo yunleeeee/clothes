@@ -1,0 +1,34 @@
+{
+  "file": "VRM1_Constraint_Twist_Sample.vrm",
+  "source": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+  "sha256": "12c2b97e95e700783a6a550dc0eee2d7880aeedccef9ae67bc4c5a2f0f2631a2",
+  "retrieved": "2026-11-17",
+  "specVersion": "2.0",
+  "meta": {
+    "allowAntisocialOrHateUsage": false,
+    "allowExcessivelySexualUsage": true,
+    "allowExcessivelyViolentUsage": true,
+    "allowPoliticalOrReligiousUsage": true,
+    "allowRedistribution": true,
+    "authors": [
+      "pixiv Inc."
+    ],
+    "avatarPermission": "everyone",
+    "commercialUsage": "corporation",
+    "copyrightInformation": "(c) 2022 pixiv Inc.",
+    "creditNotation": "unnecessary",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "modification": "allowModificationRedistribution",
+    "name": "VRM1_Constraint_Twist_Sample",
+    "thumbnailImage": 18,
+    "version": "v1.0.1"
+  },
+  "humanBoneCount": 54,
+  "originalFacialMorphCount": 57,
+  "garmentMaterials": [
+    "Tops_01_CLOTH",
+    "Bottoms_01_CLOTH",
+    "Shoes_01_CLOTH"
+  ],
+  "localModifications": "Added MORI_SHOULDERS, MORI_WAIST, MORI_HIPS and MORI_LEG_LENGTH morph targets at runtime; wardrobe-driven garment material colors and visibility."
+}

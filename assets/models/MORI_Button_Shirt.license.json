@@ -1,0 +1,26 @@
+{
+  "file": "MORI_Button_Shirt.glb",
+  "created": "2026-11-17",
+  "sha256": "16713dbb5b0e89282e2081e8ffe051e3849378f8ce1694efed50cadf6ce233c6",
+  "generator": "scripts/derive-tops.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent fitted short-sleeve shirt with geometric collar leaves, a front button placket and five volumetric buttons. Original skin joint indices and normalized weights are retained.",
+    "vertices": 883,
+    "triangles": 1290,
+    "detailTriangles": 80,
+    "skinnedJoints": 83,
+    "category": "top",
+    "style": "shirt",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item."
+  }
+}

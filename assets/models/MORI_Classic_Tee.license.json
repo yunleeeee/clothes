@@ -1,0 +1,25 @@
+{
+  "file": "MORI_Classic_Tee.glb",
+  "created": "2026-11-17",
+  "sha256": "7a2ea72231469f903a2ecc06eee1499804cd2965b95fa9770d2d00f73996e831",
+  "generator": "scripts/derive-tops.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent fitted crew-neck T-shirt with the licensed short-sleeve topology, added cloth clearance and subtle geometric folds. Original skin joint indices and normalized weights are retained.",
+    "vertices": 717,
+    "triangles": 1210,
+    "skinnedJoints": 83,
+    "category": "top",
+    "style": "tee",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item."
+  }
+}

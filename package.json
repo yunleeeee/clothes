@@ -11,6 +11,14 @@
     "start": "node server/index.mjs",
     "dev": "node --watch server/index.mjs",
     "test": "node --test",
-    "check": "node --check server/index.mjs && node --check src/app.js && node --check src/avatar.js"
+    "derive:pants": "node scripts/derive-pants.mjs",
+    "derive:coat": "node scripts/derive-coat.mjs",
+    "derive:shorts": "node scripts/derive-shorts.mjs",
+    "derive:tops": "node scripts/derive-tops.mjs",
+    "check": "node --check server/index.mjs && node --check src/app.js && node --check src/lookbook.js && node --check src/wardrobe.js && node --check src/assetAvatar.js && node --check src/bodyMorphs.js && node --check src/skinnedGarments.js && node --check scripts/derive-pants.mjs && node --check scripts/derive-jacket.mjs && node --check scripts/derive-coat.mjs && node --check scripts/derive-shorts.mjs && node --check scripts/derive-tops.mjs"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5",
+    "three": "^0.187.0"
   }
 }

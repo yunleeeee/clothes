@@ -1,0 +1,26 @@
+{
+  "file": "MORI_Knit_Sweater.glb",
+  "created": "2026-11-17",
+  "sha256": "039fbd01cd6b30a6945046f53a62abd4c79a4da4dd98a31dae18b166cb7b13c6",
+  "generator": "scripts/derive-tops.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent relaxed closed-front knit sweater with long skinned sleeves, geometric elbow folds, ribbed cuffs and a ribbed hem. Original skin joint indices and normalized weights are retained.",
+    "vertices": 1325,
+    "triangles": 2272,
+    "sleeveTriangles": 1092,
+    "skinnedJoints": 83,
+    "category": "top",
+    "style": "sweater",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item."
+  }
+}

@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f6f3">
-  <meta name="description" content="MORI 衣间，一间私人的极简虚拟衣橱。">
+  <meta name="description" content="MORI 衣间，轻量化私人数字衣橱与辅助穿搭系统。">
   <title>MORI · 衣间</title>
   <link rel="stylesheet" href="/styles.css">
+  <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/","@pixiv/three-vrm":"/node_modules/@pixiv/three-vrm/lib/three-vrm.module.js"}}</script>
   <script type="module" src="/src/app.js"></script>
 </head>
 <body>
@@ -25,17 +26,49 @@
         <nav id="filters" class="filters" aria-label="衣物分类"></nav>
         <div id="wardrobe-grid" class="garment-grid" aria-live="polite"></div>
         <div id="wardrobe-empty" class="wardrobe-empty" hidden>还没有衣服。<br>点击右上角「添加衣服」开始。</div>
-        <div class="closet-bottom">SELECT A PIECE TO TRY ON <span>↗</span></div>
+        <div class="closet-bottom">SELECT A PIECE TO STYLE <span>↗</span></div>
       </aside>
 
       <main class="showcase">
-        <div class="showcase-top"><span>THE DRESSING ROOM</span><span class="showcase-index">01 — 01</span></div>
+        <div class="showcase-top"><span>THE STYLING BOARD</span><span id="current-summary" class="showcase-index">00 PIECES</span></div>
         <div class="figure-wrap">
           <div class="figure-backdrop"></div>
-          <div id="avatar" class="avatar" role="img" aria-label="当前穿搭的二次元人物"></div>
-          <div class="figure-caption">MORI <em>atelier</em></div>
+          <div id="avatar" class="avatar" role="group" aria-label="今日穿搭平铺画布"></div>
+          <div class="viewer-tools">
+            <span id="viewer-mode" class="viewer-mode">LOOKBOOK</span>
+            <select id="season-filter" class="viewer-select" aria-label="搭配季节">
+              <option value="all">四季通用</option>
+              <option value="summer">春夏轻薄</option>
+              <option value="spring_autumn">春秋适中</option>
+              <option value="winter">冬季保暖</option>
+            </select>
+            <button id="smart-style" class="viewer-button viewer-primary" type="button" title="保留已锁定单品，智能补全其余搭配">智能搭配</button>
+            <button id="open-3d" class="viewer-button" type="button" aria-pressed="false">3D 试穿</button>
+            <button id="toggle-guides" class="viewer-button" type="button" aria-pressed="true">比例线</button>
+            <button id="save-look" class="viewer-button" type="button">收藏</button>
+            <button id="clear-look" class="viewer-button" type="button">清空</button>
+          </div>
+          <div class="figure-caption">MORI <em>lookbook</em></div>
         </div>
-        <div class="showcase-bottom"><span>今日穿搭</span><span id="current-summary">点击左侧衣服试穿</span></div>
+        <section id="asset-controls" class="asset-controls" hidden aria-label="3D 人物设置">
+          <div class="asset-toolbar">
+            <span id="asset-status" class="asset-status" role="status">正在准备本地 VRM 人物…</span>
+            <div class="asset-actions">
+              <button id="rotate-3d" class="viewer-button" type="button" aria-pressed="false">自动旋转</button>
+              <button id="reset-3d" class="viewer-button" type="button">视角复位</button>
+            </div>
+          </div>
+          <div class="body-profile">
+            <label><span>肩宽 <output id="profile-shoulders-value">100</output></span><input id="profile-shoulders" data-profile="shoulders" type="range" min="80" max="120" step="1" value="100"></label>
+            <label><span>腰围 <output id="profile-waist-value">100</output></span><input id="profile-waist" data-profile="waist" type="range" min="80" max="120" step="1" value="100"></label>
+            <label><span>胯宽 <output id="profile-hips-value">100</output></span><input id="profile-hips" data-profile="hips" type="range" min="80" max="120" step="1" value="100"></label>
+            <label><span>腿长 <output id="profile-legs-value">100</output></span><input id="profile-legs" data-profile="legs" type="range" min="90" max="110" step="1" value="100"></label>
+          </div>
+        </section>
+        <div class="showcase-bottom">
+          <div id="harmony-bar" class="harmony-bar" aria-live="polite"></div>
+        </div>
+        <div id="saved-looks" class="saved-looks" hidden aria-label="已收藏穿搭"></div>
       </main>
     </div>
   </div>
@@ -54,10 +87,18 @@
           <option value="outer">外套</option><option value="shoes">鞋子</option><option value="accessory">配饰</option>
         </select></label>
         <label class="field">款式<select id="item-style" aria-label="衣服版型"></select></label>
-        <label class="field">颜色<input id="item-color" type="color" value="#d4c6b9" aria-label="衣服在小人身上的颜色"></label>
+        <label class="field">颜色<input id="item-color" type="color" value="#d4c6b9" aria-label="衣服主色"></label>
+        <label class="field field-wide">适用季节<select id="item-season" aria-label="适用季节">
+          <option value="all">四季通用</option><option value="summer">春夏轻薄</option>
+          <option value="spring_autumn">春秋适中</option><option value="winter">冬季保暖</option>
+        </select></label>
       </div>
-      <div class="photo-source"><label><input type="radio" name="photoType" value="item" checked> 单品照</label><label><input type="radio" name="photoType" value="worn"> 上身照</label></div>
-      <p id="analysis-message" class="analysis-message" role="status">照片保存在本浏览器。小人采用简化插画效果。</p>
+      <div class="photo-source">
+        <label><input type="radio" name="photoType" value="item" checked> 单品照</label>
+        <label><input type="radio" name="photoType" value="worn"> 上身照</label>
+        <label class="cutout-toggle"><input id="auto-cutout" type="checkbox" checked> 自动去背</label>
+      </div>
+      <p id="analysis-message" class="analysis-message" role="status">照片仅保存在本浏览器。单品照会自动去除纯色背景，直接用于平铺穿搭拼贴。</p>
       <div class="modal-actions">
         <button id="analyze-button" type="button" class="ai-button" disabled>AI 识别 <span>↗</span></button>
         <button type="submit" class="submit-button">加入衣柜 <span>→</span></button>

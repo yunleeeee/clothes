@@ -1,0 +1,28 @@
+{
+  "file": "MORI_Straight_Pants.glb",
+  "created": "2026-11-17",
+  "sha256": "d610d3b3cd0091e0933fe6a663f9431f484358bdd18451bfc7f2aafd20740669",
+  "generator": "scripts/derive-pants.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent straight trousers derived from the licensed lower-body topology and rig. Plane-clipped waist and ankle boundaries create level hems; added cloth clearance, knee folds, a waistband, pressed front creases and turned cuffs create a distinct tailored silhouette. Interpolated boundary vertices preserve blended joint influences and normalized weights.",
+    "vertices": 9830,
+    "triangles": 3458,
+    "surfaceTriangles": 2818,
+    "detailTriangles": 640,
+    "features": ["straight-leg", "waistband", "pressed-creases", "turned-cuffs"],
+    "skinnedJoints": 83,
+    "category": "bottom",
+    "style": "pants",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item."
+  }
+}

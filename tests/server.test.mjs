@@ -20,6 +20,9 @@ test("health endpoint and local static frontend",async()=>{
     const character=await fetch(base+"/assets/mori-anime-boy.jpg");
     assert.equal(character.status,200);
     assert.match(character.headers.get("content-type") || "",/image\/jpeg/);
+    const three=await fetch(base+"/node_modules/three/build/three.module.js");
+    assert.equal(three.status,200);
+    assert.match(three.headers.get("content-type"),/text\/javascript/);
   }finally{await new Promise(resolve=>server.close(resolve));}
 });
 test("vision API is explicitly optional",async()=>{

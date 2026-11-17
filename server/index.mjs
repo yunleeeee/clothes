@@ -20,6 +20,10 @@ const contentTypes={
   ".webp":"image/webp",
   ".jpg":"image/jpeg",
   ".jpeg":"image/jpeg",
+  ".glb":"model/gltf-binary",
+  ".gltf":"model/gltf+json",
+  ".vrm":"model/gltf-binary",
+  ".bin":"application/octet-stream",
   ".ico":"image/x-icon"
 };
 const MAX_BODY=3*1024*1024;
@@ -63,7 +67,7 @@ export async function analyzeGarment(input,env=process.env){
     model,
     max_tokens:250,
     messages:[
-      {role:"system",content:"你是服装图片分类助手。仅返回有效 JSON 对象，键为 name(中文短名称), category(top/bottom/dress/outer/shoes/accessory), style(上衣 tee/shirt/sweater；下装 pants/skirt/shorts；裙装 dress/longdress；外套 jacket/coat；鞋 sneakers/boots；配饰 scarf/bow), color(主要衣服颜色 #RRGGBB)。只判断图片中最主要的一件服饰，不得编造无关事实。不要 markdown。"},
+      {role:"system",content:"你是服装图片分类助手。仅返回有效 JSON 对象，键为 name(中文短名称), category(top/bottom/dress/outer/shoes/accessory), style(上衣 tee/shirt/sweater；下装 pants/skirt/shorts；裙装 dress/longdress；外套 jacket/coat；鞋 sneakers/boots；配饰 scarf/bow), season(all/summer/spring_autumn/winter), color(主要衣服颜色 #RRGGBB)。只判断图片中最主要的一件服饰，不得编造无关事实。不要 markdown。"},
       {role:"user",content:[
         {type:"text",text:"这是一张"+photoType+"。请识别最主要的服装。"},
         {type:"image_url",image_url:{url:input.image}}

@@ -1,0 +1,27 @@
+{
+  "file": "MORI_Utility_Jacket.glb",
+  "created": "2026-11-17",
+  "sha256": "b3c80c9b92d73cec01758e7456870714531b56ac4d9de4ab0165d24360dd9686",
+  "generator": "scripts/derive-jacket.mjs",
+  "source": {
+    "file": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent open-front utility jacket derived from the licensed shirt and body topology, with long fitted sleeves, original arm and torso skin weights, added cloth clearance, subtle geometric folds and a raised front opening that leaves the inner top visible.",
+    "vertices": 1280,
+    "triangles": 2162,
+    "bodyTriangles": 1070,
+    "sleeveTriangles": 1092,
+    "skinnedJoints": 83,
+    "category": "outer",
+    "style": "jacket",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item. The base inner top remains visible."
+  }
+}

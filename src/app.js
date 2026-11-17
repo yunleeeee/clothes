@@ -1,21 +1,34 @@
 import {
-  CATEGORIES, STYLES, DEFAULT_PROFILE, DEMO_ITEMS,
-  normalizeColor, normalizeCategory, normalizeStyle, labelFor, applyItem
+  CATEGORIES, STYLES, DEMO_ITEMS, DEFAULT_PROFILE,
+  normalizeColor, normalizeCategory, normalizeStyle, normalizeSeason, labelFor, applyItem,
+  evaluateColorHarmony, suggestOutfit
 } from "./wardrobe.js";
 import { listItems, saveItem, deleteItem, readPreference, savePreference } from "./storage.js";
 import { renderAvatar } from "./avatar.js";
 import { renderModel } from "./model.js";
+import { garmentIllustration, renderLookbook } from "./lookbook.js";
 
 const $ = id => document.getElementById(id);
 const state = {
   items: [],
   look: readPreference("look", {}),
-  profile: { ...DEFAULT_PROFILE, ...readPreference("profile", {}), skin: DEFAULT_PROFILE.skin, hair: DEFAULT_PROFILE.hair, hairStyle: "short" },
+  savedLooks: readPreference("savedLooks", []),
+  locked: new Set(),
+  showGuides: readPreference("showGuides", true),
+  season: readPreference("season", "all"),
   filter: "all",
-  file: null
+  file: null,
+  processedPhoto: null,
+  processedCutout: false,
+  viewMode: "lookbook",
+  profile: { ...DEFAULT_PROFILE, ...readPreference("bodyProfile", {}) },
+  autoRotate: false
 };
 let toastTimer;
 let imageURL;
+let assetViewer;
+let assetViewerPromise;
+let assetLoadId = 0;
 
 function node(tag, className, value) {
   const element = document.createElement(tag);
@@ -31,71 +44,14 @@ function toast(message) {
 }
 function saveLook() { savePreference("look", state.look); }
 function setLook(item) {
-  state.look = state.look[item.category] === item.id
-    ? Object.fromEntries(Object.entries(state.look).filter(([key]) => key !== item.category))
-    : applyItem(state.look, item);
+  if (state.look[item.category] === item.id) {
+    delete state.look[item.category];
+    state.locked.delete(item.category);
+  } else {
+    state.look = applyItem(state.look, item);
+  }
   saveLook();
   render();
-}
-function garmentIllustration(item) {
-  // Miniature clothing drawings echo the garment contours used by the male avatar.
-  const fill = normalizeColor(item.color, "#aebbaa");
-  const dark = "#" + [1,3,5].map(i =>
-    Math.max(0, parseInt(fill.slice(i,i+2),16)-45).toString(16).padStart(2,"0")
-  ).join("");
-  const light = "#" + [1,3,5].map(i =>
-    Math.min(255, parseInt(fill.slice(i,i+2),16)+32).toString(16).padStart(2,"0")
-  ).join("");
-  const P = (d, color=fill, extra="") =>
-    '<path d="' + d + '" fill="' + color + '" stroke="' + dark + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" ' + extra + '/>';
-  const seam = (d, opacity=".38") => '<path d="' + d + '" fill="none" stroke="' + light + '" stroke-width="1.4" stroke-linecap="round" opacity="' + opacity + '"/>';
-  const style = normalizeStyle(item.category,item.style);
-  const art = [];
-  art.push('<svg viewBox="0 0 180 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">');
-  art.push('<defs><linearGradient id="miniShade" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".23"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient></defs>');
-  if(item.category==="top") {
-    const longSleeve=style!=="tee";
-    art.push(P(longSleeve ?
-      "M48 33L71 27Q90 46 109 27L132 33Q145 44 153 64L142 132L120 127L117 71L121 160Q90 166 59 160L63 71L60 127L38 132L27 64Q35 44 48 33Z" :
-      "M48 34L71 27Q90 44 109 27L132 34Q150 43 156 71L134 84L122 67L122 161Q90 168 58 161L58 67L46 84L24 71Q31 43 48 34Z"));
-    art.push(seam("M71 29Q90 52 109 29"));
-    if(style==="shirt"){
-      art.push(seam("M90 47V161"));
-      art.push(P("M71 28L90 49L82 61L64 36Z",light));
-      art.push(P("M109 28L90 49L99 61L116 36Z",light));
-      for(let y=68;y<153;y+=18)art.push('<circle cx="91" cy="'+y+'" r="1.5" fill="'+dark+'"/>');
-    }else if(style==="sweater"){
-      art.push(seam("M59 149Q90 157 121 149M38 120L60 124M121 124L142 120"));
-    }else art.push(seam("M58 156Q90 164 122 156"));
-    art.push(seam("M63 78Q67 97 66 124M117 78Q113 97 114 124",".19"));
-  }else if(item.category==="bottom"){
-    if(style==="skirt"){
-      art.push(P("M55 24L125 24L149 164Q90 181 31 164Z"));
-      art.push(seam("M55 38H125M68 52L54 163M113 52L128 163"));
-    }else if(style==="shorts"){
-      art.push(P("M52 24L128 24L138 113Q116 122 100 112L90 76L80 112Q61 122 42 113Z"));
-      art.push(seam("M90 42V72M50 102L80 103M100 103L132 102"));
-    }else{
-      art.push(P("M52 24L128 24L141 160L98 163L91 76L84 163L41 160Z"));
-      art.push(seam("M52 37H128M91 42V76M49 150L79 151M104 151L133 150"));
-      art.push(seam("M59 64L66 125M123 63L115 124",".18"));
-    }
-  }else if(item.category==="outer"){
-    const hem=style==="coat"?172:155;
-    art.push(P("M47 32L74 24L87 49L78 "+hem+"L47 "+hem+"L58 75L49 132L25 130L28 60Z"));
-    art.push(P("M133 32L106 24L93 49L102 "+hem+"L133 "+hem+"L122 75L131 132L155 130L152 60Z"));
-    art.push(seam("M73 27L66 53L81 66M107 27L114 53L99 66"));
-    art.push(seam("M48 117L69 117M111 117L132 117"));
-  }else if(item.category==="shoes"){
-    art.push(P("M37 93L55 65L71 78L81 106Q99 112 99 132L27 136Q18 119 37 93Z"));
-    art.push(P("M109 93L127 65L142 80L153 106Q171 113 171 133L100 137Q92 119 109 93Z"));
-    art.push(seam("M27 128L99 125M100 129L171 126M43 99L65 103M116 99L139 103"));
-  }else{
-    art.push(P("M90 73Q37 25 25 69Q18 115 90 93Q163 115 155 69Q143 25 90 73Z"));
-    art.push('<circle cx="90" cy="83" r="12" fill="'+dark+'"/>');
-  }
-  art.push('</svg>');
-  return art.join("");
 }
 function renderFilters() {
   const target = $("filters");
@@ -123,8 +79,12 @@ function renderWardrobe() {
     card.setAttribute("aria-pressed", String(active));
     const media = node("div", "garment-image");
     if (item.photo) {
-      const image = node("img"); image.src = item.photo;
-      image.alt = item.name; image.loading = "lazy"; media.append(image);
+      const image = node("img");
+      image.src = item.photo;
+      image.alt = item.name;
+      image.loading = "lazy";
+      if (item.cutout) image.className = "cutout-thumb";
+      media.append(image);
     } else media.innerHTML = garmentIllustration(item);
     if (active) media.append(node("span", "garment-indicator"));
     card.append(media, node("span", "garment-name", item.name));
@@ -138,7 +98,10 @@ function renderWardrobe() {
       try {
         await deleteItem(item.id);
         state.items = state.items.filter(other => other.id !== item.id);
-        if (state.look[item.category] === item.id) delete state.look[item.category];
+        if (state.look[item.category] === item.id) {
+          delete state.look[item.category];
+          state.locked.delete(item.category);
+        }
         saveLook(); render(); toast("已移除");
       } catch { toast("删除失败，请再试一次"); }
     };
@@ -152,14 +115,189 @@ function renderWardrobe() {
     target.append(card);
   }
 }
+function renderHarmonyBar(wornItems) {
+  const bar = $("harmony-bar");
+  const result = evaluateColorHarmony(wornItems);
+  bar.replaceChildren();
+
+  const left = node("div", "harmony-left");
+  const swatches = node("div", "harmony-swatches");
+  if (result.palette.length) {
+    for (const p of result.palette) {
+      const dot = node("span", "harmony-swatch");
+      dot.style.backgroundColor = p.hex;
+      dot.title = p.name + " (" + p.hex + ")";
+      swatches.append(dot);
+    }
+  } else {
+    swatches.append(node("span", "harmony-empty-dot"));
+  }
+  const badge = node("span", "harmony-label", result.score ? result.score + "分 · " + result.label : result.label);
+  left.append(swatches, badge);
+
+  const tip = node("span", "harmony-tip", result.tip);
+  bar.append(left, tip);
+}
+function renderSavedLooks() {
+  const container = $("saved-looks");
+  container.replaceChildren();
+  if (!state.savedLooks.length) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  container.append(node("span", "saved-label", "常用穿搭"));
+  const list = node("div", "saved-list");
+  for (const saved of state.savedLooks) {
+    const chip = node("div", "saved-chip");
+    const applyBtn = node("button", "saved-apply", saved.name);
+    applyBtn.type = "button";
+    applyBtn.onclick = () => {
+      const validLook = {};
+      for (const [cat, id] of Object.entries(saved.look || {})) {
+        if (state.items.some(i => i.id === id)) validLook[cat] = id;
+      }
+      state.look = validLook;
+      state.locked.clear();
+      saveLook();
+      render();
+      toast("已切换至「" + saved.name + "」");
+    };
+    const delBtn = node("button", "saved-del", "×");
+    delBtn.type = "button";
+    delBtn.setAttribute("aria-label", "删除收藏" + saved.name);
+    delBtn.onclick = () => {
+      state.savedLooks = state.savedLooks.filter(s => s.id !== saved.id);
+      savePreference("savedLooks", state.savedLooks);
+      renderSavedLooks();
+    };
+    chip.append(applyBtn, delBtn);
+    list.append(chip);
+  }
+  container.append(list);
+}
+function updateViewerControls(wornItems) {
+  $("toggle-guides").setAttribute("aria-pressed", String(state.showGuides));
+  $("season-filter").value = state.season;
+  $("save-look").disabled = wornItems.length === 0;
+  $("clear-look").disabled = wornItems.length === 0;
+  $("smart-style").disabled = state.items.length === 0;
+}
+function syncAssetControls() {
+  const active = state.viewMode === "3d";
+  $("asset-controls").hidden = !active;
+  $("open-3d").textContent = active ? "返回平铺" : "3D 试穿";
+  $("open-3d").setAttribute("aria-pressed", String(active));
+  $("toggle-guides").hidden = active;
+  $("rotate-3d").setAttribute("aria-pressed", String(state.autoRotate));
+  for (const input of document.querySelectorAll("[data-profile]")) {
+    const key = input.dataset.profile;
+    input.value = state.profile[key] ?? DEFAULT_PROFILE[key];
+    $(input.id + "-value").textContent = input.value;
+  }
+}
+function showAssetResult(result) {
+  if (!result) return;
+  $("viewer-mode").textContent = result.mode === "fallback" ? "3D / FALLBACK" : "VRM / 3D";
+  $("asset-status").textContent = result.message;
+}
+async function ensureAssetViewer() {
+  if (assetViewer) return assetViewer;
+  if (assetViewerPromise) return assetViewerPromise;
+  const request = ++assetLoadId;
+  $("asset-status").textContent = "正在加载本地骨骼人物、面部表情与体型 Morph…";
+  assetViewerPromise = (async () => {
+    try {
+      const { mountAssetAvatar } = await import("./assetAvatar.js");
+      const viewer = await mountAssetAvatar($("avatar"), {
+        look: state.look,
+        items: state.items,
+        profile: state.profile
+      });
+      if (state.viewMode !== "3d" || request !== assetLoadId) {
+        viewer.dispose();
+        return null;
+      }
+      assetViewer = viewer;
+      viewer.setAutoRotate(state.autoRotate);
+      renderAvatarStage();
+      return viewer;
+    } catch (error) {
+      if (state.viewMode === "3d" && request === assetLoadId) {
+        state.viewMode = "illustration";
+        toast("3D 模型加载失败，已返回立绘模式");
+        console.error(error);
+        render();
+      }
+      return null;
+    } finally {
+      assetViewerPromise = null;
+      if (state.viewMode === "3d" && !assetViewer) queueMicrotask(renderAvatarStage);
+    }
+  })();
+  return assetViewerPromise;
+}
+function leaveAssetViewer() {
+  assetLoadId++;
+  if (assetViewer) assetViewer.dispose();
+  assetViewer = null;
+  state.autoRotate = false;
+}
+function renderAvatarStage() {
+  const element = $("avatar");
+  if (state.viewMode === "3d") {
+    if (assetViewer) {
+      showAssetResult(assetViewer.update(state.look, state.items, state.profile));
+    } else {
+      element.dataset.engine = "loading";
+      $("viewer-mode").textContent = "VRM / LOADING";
+      if (!assetViewerPromise) {
+        element.replaceChildren(node("div", "asset-loading", "正在加载本地 VRM 人物…"));
+        ensureAssetViewer();
+      }
+    }
+    return;
+  }
+  if (state.viewMode === "illustration") {
+    element.dataset.engine = "illustration";
+    $("viewer-mode").textContent = "ILLUSTRATION";
+    element.replaceChildren();
+    renderModel(element, state.look, state.items).catch(() => {
+      element.innerHTML = renderAvatar(state.look, state.items, state.profile);
+    });
+    return;
+  }
+  $("viewer-mode").textContent = "LOOKBOOK";
+  renderLookbook(element, state.look, state.items, {
+    showGuides: state.showGuides,
+    lockedCategories: state.locked,
+    onToggleLock: cat => {
+      if (state.locked.has(cat)) state.locked.delete(cat);
+      else state.locked.add(cat);
+      renderAvatarStage();
+    },
+    onRemove: cat => {
+      delete state.look[cat];
+      state.locked.delete(cat);
+      saveLook();
+      render();
+    }
+  });
+}
 function render() {
   renderFilters();
   renderWardrobe();
-  renderModel($("avatar"), state.look, state.items).catch(() => {
-    $("avatar").innerHTML = renderAvatar(state.look, state.items, state.profile);
-  });
-  const activeItems = Object.values(state.look).filter(id => state.items.some(item => item.id === id)).length;
-  $("current-summary").textContent = activeItems ? activeItems + " 件已选 · 当前为高精度立绘换色预览" : "点击左侧衣服试穿";
+  renderAvatarStage();
+  const wornItems = Object.entries(state.look)
+    .map(([, id]) => state.items.find(item => item.id === id))
+    .filter(Boolean);
+  $("current-summary").textContent = wornItems.length
+    ? String(wornItems.length).padStart(2, "0") + " PIECES"
+    : "00 PIECES";
+  renderHarmonyBar(wornItems);
+  renderSavedLooks();
+  updateViewerControls(wornItems);
+  syncAssetControls();
 }
 function updateStyles(preferred) {
   const select = $("item-style"); select.replaceChildren();
@@ -173,10 +311,14 @@ function showUpload() {
   $("upload-form").reset();
   $("item-category").value = "top";
   $("item-color").value = "#d4c6b9";
+  $("item-season").value = "all";
+  $("auto-cutout").checked = true;
   updateStyles();
   state.file = null;
+  state.processedPhoto = null;
+  state.processedCutout = false;
   $("analyze-button").disabled = true;
-  $("analysis-message").textContent = "照片保存在本浏览器。小人采用简化插画效果。";
+  $("analysis-message").textContent = "照片仅保存在本浏览器。单品照会自动去除纯色背景，直接用于平铺穿搭拼贴。";
   $("upload-preview").replaceChildren(
     node("span", "upload-sign", "＋"),
     node("strong", "", "选择一张衣服照片"),
@@ -193,43 +335,145 @@ function imageFromFile(file) {
     image.src = url;
   });
 }
-async function compressPhoto(file) {
+function removeSolidBackground(canvas) {
+  const w = canvas.width, h = canvas.height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  // Sample 4 corners to check if the photo has a uniform solid/light background
+  const corners = [
+    0,
+    (w - 1) * 4,
+    ((h - 1) * w) * 4,
+    ((h - 1) * w + w - 1) * 4
+  ];
+  let sumR = 0, sumG = 0, sumB = 0, opaqueCount = 0;
+  for (const idx of corners) {
+    if (data[idx + 3] < 200) return false; // Already transparent
+    sumR += data[idx]; sumG += data[idx + 1]; sumB += data[idx + 2];
+    opaqueCount++;
+  }
+  if (!opaqueCount) return false;
+  const bgR = sumR / opaqueCount, bgG = sumG / opaqueCount, bgB = sumB / opaqueCount;
+
+  // Verify corners are reasonably uniform
+  for (const idx of corners) {
+    const dist = Math.abs(data[idx] - bgR) + Math.abs(data[idx + 1] - bgG) + Math.abs(data[idx + 2] - bgB);
+    if (dist > 95) return false;
+  }
+
+  const visited = new Uint8Array(w * h);
+  const queue = new Int32Array(w * h);
+  let head = 0, tail = 0;
+  const push = (x, y) => {
+    const pos = y * w + x;
+    if (!visited[pos]) { visited[pos] = 1; queue[tail++] = pos; }
+  };
+
+  for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
+  for (let y = 1; y < h - 1; y++) { push(0, y); push(w - 1, y); }
+
+  const hardThresh = 58;
+  const softThresh = 95;
+  let removed = 0;
+
+  while (head < tail) {
+    const pos = queue[head++];
+    const idx = pos * 4;
+    const dist = Math.abs(data[idx] - bgR) + Math.abs(data[idx + 1] - bgG) + Math.abs(data[idx + 2] - bgB);
+    if (dist <= softThresh) {
+      if (dist <= hardThresh) {
+        data[idx + 3] = 0;
+      } else {
+        const factor = (dist - hardThresh) / (softThresh - hardThresh);
+        data[idx + 3] = Math.round(data[idx + 3] * factor);
+      }
+      removed++;
+      const x = pos % w, y = (pos - x) / w;
+      if (x > 0) push(x - 1, y);
+      if (x < w - 1) push(x + 1, y);
+      if (y > 0) push(x, y - 1);
+      if (y < h - 1) push(x, y + 1);
+    }
+  }
+
+  // Only commit if we removed a meaningful border (>5%) without wiping the whole image (<95%)
+  const ratio = removed / (w * h);
+  if (ratio < 0.05 || ratio > 0.95) return false;
+  ctx.putImageData(imgData, 0, 0);
+  return true;
+}
+async function processPhoto(file, doCutout) {
   const image = await imageFromFile(file);
-  const ratio = Math.min(1, 900 / Math.max(image.naturalWidth, image.naturalHeight));
+  const ratio = Math.min(1, 760 / Math.max(image.naturalWidth, image.naturalHeight));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
   canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
-  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/webp", .8);
-}
-async function sampleColor(file) {
-  const image = await imageFromFile(file);
-  const canvas = document.createElement("canvas"); canvas.width = 32; canvas.height = 32;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  context.drawImage(image, 0, 0, 32, 32);
-  const bytes = context.getImageData(0, 0, 32, 32).data;
-  const sums = [0, 0, 0]; let count = 0;
-  for (let y = 6; y < 26; y += 2) for (let x = 6; x < 26; x += 2) {
-    const offset = (y * 32 + x) * 4;
-    if (bytes[offset + 3] < 128) continue;
-    for (let k = 0; k < 3; k++) sums[k] += bytes[offset + k];
-    count++;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  let cutoutApplied = false;
+  if (doCutout) {
+    cutoutApplied = removeSolidBackground(canvas);
   }
-  if (count) $("item-color").value = "#" + sums.map(v => Math.round(v / count).toString(16).padStart(2, "0")).join("");
+  const dataUrl = canvas.toDataURL("image/webp", 0.85);
+
+  // Sample dominant color from non-transparent center pixels
+  const bytes = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const sums = [0, 0, 0];
+  let count = 0;
+  const stepX = Math.max(1, Math.floor(canvas.width / 24));
+  const stepY = Math.max(1, Math.floor(canvas.height / 24));
+  for (let y = Math.floor(canvas.height * 0.15); y < canvas.height * 0.85; y += stepY) {
+    for (let x = Math.floor(canvas.width * 0.15); x < canvas.width * 0.85; x += stepX) {
+      const offset = (y * canvas.width + x) * 4;
+      if (bytes[offset + 3] < 160) continue;
+      sums[0] += bytes[offset];
+      sums[1] += bytes[offset + 1];
+      sums[2] += bytes[offset + 2];
+      count++;
+    }
+  }
+  const color = count
+    ? "#" + sums.map(v => Math.round(v / count).toString(16).padStart(2, "0")).join("")
+    : null;
+
+  return { dataUrl, cutout: cutoutApplied, color };
 }
-function selectPhoto(event) {
+async function refreshUploadPreview() {
+  if (!state.file) return;
+  const doCutout = $("auto-cutout").checked;
+  try {
+    const { dataUrl, cutout, color } = await processPhoto(state.file, doCutout);
+    state.processedPhoto = dataUrl;
+    state.processedCutout = cutout;
+    const image = node("img");
+    image.src = dataUrl;
+    image.alt = "预览";
+    if (cutout) image.className = "cutout-preview";
+    $("upload-preview").replaceChildren(image);
+    if (color) $("item-color").value = color;
+    if (doCutout && cutout) {
+      $("analysis-message").textContent = "已自动去除纯色背景，平铺画布将呈现干净的抠图效果。";
+    } else if (doCutout && !cutout) {
+      $("analysis-message").textContent = "背景较复杂，已保留原图（仍可正常平铺展示）。";
+    } else {
+      $("analysis-message").textContent = "已保留原图。照片仅保存在本浏览器。";
+    }
+  } catch {
+    toast("无法处理该图片");
+  }
+}
+async function selectPhoto(event) {
   const file = event.target.files?.[0]; if (!file) return;
   if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
     toast("请选择小于 8 MB 的 JPG、PNG 或 WebP 图片"); event.target.value = ""; return;
   }
   state.file = file;
   $("analyze-button").disabled = false;
-  if (imageURL) URL.revokeObjectURL(imageURL);
-  imageURL = URL.createObjectURL(file);
-  const image = node("img"); image.src = imageURL; image.alt = "预览";
-  $("upload-preview").replaceChildren(image);
   if (!$("item-name").value) $("item-name").value = file.name.replace(/\.[^.]+$/, "").slice(0, 45);
-  sampleColor(file).catch(() => {});
+  await refreshUploadPreview();
 }
 async function analyzePhoto() {
   if (!state.file) return;
@@ -237,7 +481,7 @@ async function analyzePhoto() {
   if (photoType === "worn" && !confirm("这张上身照可能包含人脸。确认发送到学校 DeepSeek API 进行识别？")) return;
   const button = $("analyze-button"); button.disabled = true; button.textContent = "识别中…";
   try {
-    const image = await compressPhoto(state.file);
+    const image = state.processedPhoto || (await processPhoto(state.file, false)).dataUrl;
     const response = await fetch("/api/analyze", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image, photoType })
@@ -248,7 +492,8 @@ async function analyzePhoto() {
     $("item-category").value = normalizeCategory(data.category);
     updateStyles(data.style);
     $("item-color").value = normalizeColor(data.color);
-    $("analysis-message").textContent = "识别完成。保存前可以修改名称、分类和颜色。";
+    if (data.season) $("item-season").value = normalizeSeason(data.season);
+    $("analysis-message").textContent = "识别完成。保存前可以修改名称、分类、季节和颜色。";
     toast("识别完成");
   } catch (error) {
     $("analysis-message").textContent = "AI 暂不可用：" + error.message + "。你仍可以手动添加。";
@@ -260,14 +505,19 @@ async function saveUpload(event) {
   const submit = event.submitter; if (submit) submit.disabled = true;
   try {
     const category = normalizeCategory($("item-category").value);
+    const result = state.processedPhoto
+      ? { dataUrl: state.processedPhoto, cutout: state.processedCutout }
+      : await processPhoto(state.file, $("auto-cutout").checked);
     const item = {
       id: crypto.randomUUID(),
       name: $("item-name").value.trim().slice(0, 45) || "我的衣服",
       category,
       style: normalizeStyle(category, $("item-style").value),
       color: normalizeColor($("item-color").value),
+      season: normalizeSeason($("item-season").value),
       photoType: document.querySelector('input[name="photoType"]:checked')?.value || "item",
-      photo: await compressPhoto(state.file),
+      photo: result.dataUrl,
+      cutout: result.cutout,
       createdAt: Date.now()
     };
     await saveItem(item);
@@ -279,22 +529,104 @@ async function saveUpload(event) {
   finally { if (submit) submit.disabled = false; }
 }
 function bindEvents() {
+  $("open-3d").onclick = () => {
+    if (state.viewMode === "3d") {
+      state.viewMode = "lookbook";
+      leaveAssetViewer();
+    } else {
+      state.viewMode = "3d";
+    }
+    renderAvatarStage();
+    syncAssetControls();
+  };
+  $("rotate-3d").onclick = () => {
+    state.autoRotate = !state.autoRotate;
+    assetViewer?.setAutoRotate(state.autoRotate);
+    syncAssetControls();
+  };
+  $("reset-3d").onclick = () => {
+    state.autoRotate = false;
+    assetViewer?.reset();
+    syncAssetControls();
+  };
+  for (const input of document.querySelectorAll("[data-profile]")) {
+    input.oninput = () => {
+      const key = input.dataset.profile;
+      state.profile = { ...state.profile, [key]: Number(input.value) };
+      $(input.id + "-value").textContent = input.value;
+      savePreference("bodyProfile", state.profile);
+      if (assetViewer) renderAvatarStage();
+    };
+  }
+  $("smart-style").onclick = () => {
+    if (!state.items.length) return;
+    state.look = suggestOutfit(state.items, state.look, {
+      lockedCategories: state.locked,
+      season: state.season
+    });
+    saveLook();
+    render();
+    toast("已为你生成协调穿搭");
+  };
+  $("toggle-guides").onclick = () => {
+    state.showGuides = !state.showGuides;
+    savePreference("showGuides", state.showGuides);
+    renderAvatarStage();
+    updateViewerControls(Object.values(state.look).map(id => state.items.find(i => i.id === id)).filter(Boolean));
+  };
+  $("season-filter").onchange = event => {
+    state.season = event.target.value;
+    savePreference("season", state.season);
+  };
+  $("clear-look").onclick = () => {
+    state.look = {};
+    state.locked.clear();
+    saveLook();
+    render();
+  };
+  $("save-look").onclick = () => {
+    const worn = Object.entries(state.look)
+      .map(([cat, id]) => [cat, state.items.find(i => i.id === id)])
+      .filter(([, item]) => Boolean(item));
+    if (!worn.length) return;
+    const defaultName = worn.slice(0, 2).map(([, item]) => item.name).join(" + ");
+    const name = prompt("为这套穿搭起个名字：", defaultName);
+    if (!name || !name.trim()) return;
+    const entry = {
+      id: crypto.randomUUID(),
+      name: name.trim().slice(0, 28),
+      look: { ...state.look },
+      createdAt: Date.now()
+    };
+    state.savedLooks = [entry, ...state.savedLooks].slice(0, 12);
+    savePreference("savedLooks", state.savedLooks);
+    renderSavedLooks();
+    toast("已收藏穿搭");
+  };
   $("add-garment").onclick = showUpload;
   $("close-dialog").onclick = () => $("upload-dialog").close();
   $("photo").onchange = selectPhoto;
+  $("auto-cutout").onchange = refreshUploadPreview;
+  document.querySelectorAll('input[name="photoType"]').forEach(radio => {
+    radio.onchange = () => {
+      $("auto-cutout").checked = radio.value === "item";
+      refreshUploadPreview();
+    };
+  });
   $("item-category").onchange = () => updateStyles();
   $("analyze-button").onclick = analyzePhoto;
   $("upload-form").onsubmit = saveUpload;
   $("upload-dialog").addEventListener("close", () => {
     if (imageURL) URL.revokeObjectURL(imageURL);
     imageURL = null;
+    state.file = null;
+    state.processedPhoto = null;
   });
 }
 async function init() {
   bindEvents();
   try {
     state.items = (await listItems()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    // Update built-in examples for male clothing without touching user-added photos.
     const latestDemos = new Map(DEMO_ITEMS.map(item => [item.id, item]));
     for (let i = 0; i < state.items.length; i++) {
       const previous = state.items[i];

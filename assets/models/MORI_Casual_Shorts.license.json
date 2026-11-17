@@ -1,0 +1,26 @@
+{
+  "file": "MORI_Casual_Shorts.glb",
+  "created": "2026-11-17",
+  "sha256": "b729c0ed85d74e49c5e82be23204fd6819da464937b38d1d2fe39e1da92a3baf",
+  "generator": "scripts/derive-shorts.mjs",
+  "source": {
+    "file": "MORI_Straight_Pants.glb",
+    "originalFile": "VRM1_Constraint_Twist_Sample.vrm",
+    "author": "pixiv Inc.",
+    "copyright": "(c) 2022 pixiv Inc.",
+    "sourceUrl": "https://raw.githubusercontent.com/pixiv/three-vrm/dev/packages/three-vrm/examples/models/VRM1_Constraint_Twist_Sample.vrm",
+    "licenseUrl": "https://vrm.dev/licenses/1.0/",
+    "allowRedistribution": true,
+    "modification": "allowModificationRedistribution",
+    "creditNotation": "unnecessary"
+  },
+  "derivative": {
+    "description": "Independent above-knee shorts derived from the licensed straight trousers, with a shorter geometric hem, subtle hem fullness and geometric folds. Original skin joint indices and normalized weights are retained.",
+    "vertices": 723,
+    "triangles": 1230,
+    "skinnedJoints": 83,
+    "category": "bottom",
+    "style": "shorts",
+    "runtime": "Loaded locally as glTF 2.0, rebound to identically named VRM bones and recolored by the selected wardrobe item."
+  }
+}
